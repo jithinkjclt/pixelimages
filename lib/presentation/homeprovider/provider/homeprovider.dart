@@ -21,6 +21,7 @@ class HomeProvider extends ChangeNotifier {
     getAllImages();
   }
 
+  //
   Future<void> getAllImages({int page = 1}) async {
     isLoading = true;
     errorMessage = null;
