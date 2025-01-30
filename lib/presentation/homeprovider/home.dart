@@ -46,7 +46,6 @@ class Home extends StatelessWidget {
                     provider.images.first.src!.large!))
                 : const SizedBox(),
           ),
-          // Add an Expanded widget here to ensure the grid takes available space
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8.0),

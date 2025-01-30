@@ -74,7 +74,6 @@ class HomeProvider extends ChangeNotifier {
               msg: 'Failed to get external storage directory.');
           return;
         }
-
         String filePath =
             '/storage/emulated/0/Download/downloaded_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
