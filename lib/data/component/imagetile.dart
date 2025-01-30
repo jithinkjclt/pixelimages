@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 class ImageTile extends StatelessWidget {
   const ImageTile(
-      {Key? key, required this.url, required this.height, required this.onTap})
-      : super(key: key);
+      {super.key, required this.url, required this.onTap});
   final String url;
-  final double height;
   final VoidCallback onTap;
 
   @override
@@ -18,13 +16,10 @@ class ImageTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
           child: Image.network(
             url,
-            height: height,
-            fit: BoxFit.cover,
+            fit: BoxFit.fill,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return Center(
-
-              );
+              return const Center();
             },
             errorBuilder: (context, error, stackTrace) => const Icon(
               Icons.broken_image,

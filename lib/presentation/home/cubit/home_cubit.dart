@@ -1,16 +1,18 @@
-import 'dart:convert';
 import 'dart:io';
-
+import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:imagelister/data/model/model.dart';
 import 'package:meta/meta.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:http/http.dart' as http;
 import '../../../data/Strings/api_key.dart';
+import '../../../data/Strings/urls.dart';
 
 part 'home_state.dart';
 
@@ -22,8 +24,9 @@ class HomeCubit extends Cubit<HomeState> {
   BuildContext context;
   String apiKey = Environment.apiKey;
 
-  int currentPage = 80;
+  int currentPage = 10;
   List<Photo> allImages = [];
+  List <Photo> revesreImages = [];
 
   Future<void> requestStoragePermission() async {
     PermissionStatus status = await Permission.storage.status;
@@ -50,19 +53,24 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  reversing() {
+    revesreImages = allImages.reversed.toList();
+    emit(HomeLoaded(images:revesreImages ));
+  }
+
   Future<void> getAllImages({int page = 1}) async {
     emit(HomeLoading());
-
-    final url = Uri.parse(
-        'https://api.pexels.com/v1/curated?page=1&per_page=$currentPage');
+    final url = Uri.parse('$baseUrl/curated?page=$page&per_page=$currentPage');
     try {
       final response = await http.get(url, headers: {'Authorization': apiKey});
 
       if (response.statusCode == 200) {
+        print(response.body);
         final Map<String, dynamic> dataMap = jsonDecode(response.body);
         final data = Imagemodel.fromJson(dataMap);
         allImages.addAll(data.photos!);
         emit(HomeLoaded(images: allImages));
+        // reversing();
       } else {
         throw Exception('Failed to load images: ${response.statusCode}');
       }
@@ -83,27 +91,27 @@ class HomeCubit extends Cubit<HomeState> {
 
     if (status.isGranted) {
       try {
-        final Uri url = Uri.parse(imageUrl);
-        final response = await http.get(url);
+        Dio dio = Dio();
 
-        if (response.statusCode == 200) {
-          Directory? directory = await getExternalStorageDirectory();
-
-          if (directory != null) {
-            String fileName =
-                'downloaded_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-            String filePath = '${directory.path}/$fileName';
-
-            File file = File(filePath);
-            await file.writeAsBytes(response.bodyBytes);
-
-            Fluttertoast.showToast(msg: "Image downloaded successfully!");
-          } else {
-            throw 'Failed to get external storage directory.';
-          }
-        } else {
-          throw 'Failed to download image. Status code: ${response.statusCode}';
+        Directory? directory = await getExternalStorageDirectory();
+        if (directory == null) {
+          Fluttertoast.showToast(
+              msg: 'Failed to get external storage directory.');
+          return;
         }
+
+        String filePath =
+            '/storage/emulated/0/Download/downloaded_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+        await dio.download(imageUrl, filePath,
+            onReceiveProgress: (received, total) {
+          if (total != -1) {}
+        });
+
+        const MethodChannel('com.example.app/refreshGallery')
+            .invokeMethod('refreshGallery', filePath);
+
+        Fluttertoast.showToast(msg: "Image downloaded successfully!");
       } catch (e) {
         Fluttertoast.showToast(msg: "Error downloading image: $e");
       }

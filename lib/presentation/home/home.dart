@@ -27,6 +27,11 @@ class Home extends StatelessWidget {
         )),
         backgroundColor: Colors.white,
       ),
+
+
+
+
+
       body: BlocProvider(
         create: (context) => HomeCubit(context),
         child: BlocBuilder<HomeCubit, HomeState>(
@@ -37,27 +42,41 @@ class Home extends StatelessWidget {
             } else if (state is HomeError) {
               return Center(child: Text('Error: ${state.errorMessage}'));
             } else if (state is HomeLoaded) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: MasonryGridView.builder(
-                  gridDelegate:
-                      const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                  ),
-                  mainAxisSpacing: 8.0,
-                  crossAxisSpacing: 8.0,
-                  itemCount: state.images.length,
-                  itemBuilder: (context, index) {
-                    final image = state.images[index];
-                    final dynamicHeight = (100 + (index % 10) * 20).toDouble();
-                    return ImageTile(
-                      onTap: () {
-                        cubit.downloadImage(image.src!.original!);
-                      },
-                      url: image.src!.large!,
-                      height: dynamicHeight,
-                    );
-                  },
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      height: 150,
+                      width: double.infinity,
+                      child: Image(
+                          fit: BoxFit.fill,
+                          image: NetworkImage(state.images.first.src!.large!)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MasonryGridView.builder(
+                        shrinkWrap: true,
+                        gridDelegate:
+                            const SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                        ),
+                        mainAxisSpacing: 8.0,
+                        crossAxisSpacing: 8.0,
+                        itemCount: state.images.length,
+                        itemBuilder: (context, index) {
+                          final image = state.images[index];
+                          // final dynamicHeight = (100 + (index % 10) * 20).toDouble();
+                          return ImageTile(
+                            onTap: () {
+                              cubit.downloadImage(image.src!.original!);
+                            },
+                            url: image.src!.large!,
+                            // height: image.height!.toDouble(),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               );
             }
